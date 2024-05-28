@@ -1,0 +1,194 @@
+INSERT INTO ref_metier_generic (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT 
+    d.libelle_metier,
+    d.model_metier,
+    d.champ_metier,
+    d.fomat,
+    d.variable
+FROM 
+    ref_metier_demo AS d
+    JOIN ref_metier_deluc AS de ON d.libelle_metier = de.libelle_metier
+    JOIN ref_metier_tressol AS t ON d.libelle_metier = t.libelle_metier
+    JOIN ref_metier_nomblot AS n ON d.libelle_metier = n.libelle_metier
+WHERE 
+    d.foreign_key_metier IS NULL
+    AND de.foreign_key_metier IS NULL
+    AND t.foreign_key_metier IS NULL
+    AND n.foreign_key_metier IS NULL;
+
+
+
+
+
+DELETE rd, rt, rdemo, rn
+FROM
+    ref_metier_deluc rd
+JOIN
+    ref_metier_tressol rt ON rd.id = rt.id AND rd.libelle_metier = rt.libelle_metier AND rd.foreign_key_metier IS NULL AND rt.foreign_key_metier IS NULL
+JOIN
+    ref_metier_demo rdemo ON rd.id = rdemo.id AND rd.libelle_metier = rdemo.libelle_metier AND rdemo.foreign_key_metier IS NULL
+JOIN
+    ref_metier_nomblot rn ON rd.id = rn.id AND rd.libelle_metier = rn.libelle_metier AND rn.foreign_key_metier IS NULL
+WHERE
+    rd.foreign_key_metier IS NULL;
+
+    
+
+
+-- Update the IDs to start from 1000
+SET @new_id = 999;
+UPDATE ref_metier_deluc SET id = (@new_id := @new_id + 1) ORDER BY id;
+
+-- Get the next AUTO_INCREMENT value
+SELECT MAX(id) + 1 INTO @next_auto_increment FROM ref_metier_deluc;
+
+-- Set the AUTO_INCREMENT value
+SET @query = CONCAT('ALTER TABLE ref_metier_deluc AUTO_INCREMENT = ', @next_auto_increment);
+PREPARE stmt FROM @query;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+
+-- Insert rows from ref_metier_demo into ref_metier_deluc
+INSERT INTO ref_metier_deluc (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT d.libelle_metier, d.model_metier, d.champ_metier, d.fomat, d.variable
+FROM ref_metier_demo d
+LEFT JOIN ref_metier_deluc de ON d.libelle_metier = de.libelle_metier
+WHERE de.libelle_metier IS NULL AND d.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_demo into ref_metier_tressol
+INSERT INTO ref_metier_tressol (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT d.libelle_metier, d.model_metier, d.champ_metier, d.fomat, d.variable
+FROM ref_metier_demo d
+LEFT JOIN ref_metier_tressol t ON d.libelle_metier = t.libelle_metier
+WHERE t.libelle_metier IS NULL AND d.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_demo into ref_metier_nomblot
+INSERT INTO ref_metier_nomblot (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT d.libelle_metier, d.model_metier, d.champ_metier, d.fomat, d.variable
+FROM ref_metier_demo d
+LEFT JOIN ref_metier_nomblot n ON d.libelle_metier = n.libelle_metier
+WHERE n.libelle_metier IS NULL AND d.foreign_key_metier IS NULL;
+
+-- Repeat similar inserts for ref_metier_deluc, ref_metier_tressol, and ref_metier_nomblot
+-- Insert rows from ref_metier_deluc into ref_metier_demo
+INSERT INTO ref_metier_demo (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT de.libelle_metier, de.model_metier, de.champ_metier, de.fomat, de.variable
+FROM ref_metier_deluc de
+LEFT JOIN ref_metier_demo d ON de.libelle_metier = d.libelle_metier
+WHERE d.libelle_metier IS NULL AND de.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_deluc into ref_metier_tressol
+INSERT INTO ref_metier_tressol (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT de.libelle_metier, de.model_metier, de.champ_metier, de.fomat, de.variable
+FROM ref_metier_deluc de
+LEFT JOIN ref_metier_tressol t ON de.libelle_metier = t.libelle_metier
+WHERE t.libelle_metier IS NULL AND de.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_deluc into ref_metier_nomblot
+INSERT INTO ref_metier_nomblot (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT de.libelle_metier, de.model_metier, de.champ_metier, de.fomat, de.variable
+FROM ref_metier_deluc de
+LEFT JOIN ref_metier_nomblot n ON de.libelle_metier = n.libelle_metier
+WHERE n.libelle_metier IS NULL AND de.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_tressol into ref_metier_demo
+INSERT INTO ref_metier_demo (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT t.libelle_metier, t.model_metier, t.champ_metier, t.fomat, t.variable
+FROM ref_metier_tressol t
+LEFT JOIN ref_metier_demo d ON t.libelle_metier = d.libelle_metier
+WHERE d.libelle_metier IS NULL AND t.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_tressol into ref_metier_deluc
+INSERT INTO ref_metier_deluc (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT t.libelle_metier, t.model_metier, t.champ_metier, t.fomat, t.variable
+FROM ref_metier_tressol t
+LEFT JOIN ref_metier_deluc de ON t.libelle_metier = de.libelle_metier
+WHERE de.libelle_metier IS NULL AND t.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_tressol into ref_metier_nomblot
+INSERT INTO ref_metier_nomblot (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT t.libelle_metier, t.model_metier, t.champ_metier, t.fomat, t.variable
+FROM ref_metier_tressol t
+LEFT JOIN ref_metier_nomblot n ON t.libelle_metier = n.libelle_metier
+WHERE n.libelle_metier IS NULL AND t.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_nomblot into ref_metier_demo
+INSERT INTO ref_metier_demo (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT n.libelle_metier, n.model_metier, n.champ_metier, n.fomat, n.variable
+FROM ref_metier_nomblot n
+LEFT JOIN ref_metier_demo d ON n.libelle_metier = d.libelle_metier
+WHERE d.libelle_metier IS NULL AND n.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_nomblot into ref_metier_deluc
+INSERT INTO ref_metier_deluc (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT n.libelle_metier, n.model_metier, n.champ_metier, n.fomat, n.variable
+FROM ref_metier_nomblot n
+LEFT JOIN ref_metier_deluc de ON n.libelle_metier = de.libelle_metier
+WHERE de.libelle_metier IS NULL AND n.foreign_key_metier IS NULL;
+
+-- Insert rows from ref_metier_nomblot into ref_metier_tressol
+INSERT INTO ref_metier_tressol (libelle_metier, model_metier, champ_metier, fomat, variable)
+SELECT n.libelle_metier, n.model_metier, n.champ_metier, n.fomat, n.variable
+FROM ref_metier_nomblot n
+LEFT JOIN ref_metier_tressol t ON n.libelle_metier = t.libelle_metier
+WHERE t.libelle_metier IS NULL AND n.foreign_key_metier IS NULL;
+
+
+
+
+-- Disable foreign key checks
+SET foreign_key_checks = 0;
+
+-- Update ref_metier ids based on ref_metier_demo ids
+UPDATE ref_metier rm
+JOIN ref_metier_demo rmd 
+  ON (rm.libelle_metier = rmd.libelle_metier OR (rm.libelle_metier IS NULL AND rmd.libelle_metier IS NULL))
+  AND (rm.variable = rmd.variable OR (rm.variable IS NULL AND rmd.variable IS NULL))
+  AND (rm.model_metier = rmd.model_metier OR (rm.model_metier IS NULL AND rmd.model_metier IS NULL))
+  AND (rm.champ_metier = rmd.champ_metier OR (rm.champ_metier IS NULL AND rmd.champ_metier IS NULL))
+  AND rm.foreign_key_metier = rmd.foreign_key_metier
+  AND (rm.fomat = rmd.fomat OR (rm.fomat IS NULL AND rmd.fomat IS NULL))
+SET rm.id = rmd.id
+WHERE rm.foreign_key_metier IS NOT NULL;
+
+-- Enable foreign key checks
+SET foreign_key_checks = 1;
+
+UPDATE ref_metier rm
+JOIN ref_metier_generic rmg 
+  ON (rm.libelle_metier = rmg.libelle_metier OR (rm.libelle_metier IS NULL AND rmg.libelle_metier IS NULL))
+  AND (rm.variable = rmg.variable OR (rm.variable IS NULL AND rmg.variable IS NULL))
+  AND (rm.model_metier = rmg.model_metier OR (rm.model_metier IS NULL AND rmg.model_metier IS NULL))
+  AND (rm.champ_metier = rmg.champ_metier OR (rm.champ_metier IS NULL AND rmg.champ_metier IS NULL))
+  AND (rm.fomat = rmg.fomat OR (rm.fomat IS NULL AND rmg.fomat IS NULL))
+SET rm.id = rmg.id
+WHERE rm.foreign_key_metier IS NULL;
+
+
+SET @new_id := 1999;
+UPDATE ref_metier rm
+SET rm.id = (@new_id := @new_id + 1)
+WHERE rm.foreign_key_metier IS NULL;
+
+
+
+--merge ref_metier with ref_metier_generic
+INSERT INTO ref_metier (id, libelle_metier, variable, model_metier, champ_metier, fomat, foreign_key_metier)
+SELECT rmg.id, rmg.libelle_metier, rmg.variable, rmg.model_metier, rmg.champ_metier, rmg.fomat, rmg.foreign_key_metier
+FROM ref_metier_generic rmg
+LEFT JOIN ref_metier rm
+  ON (rm.libelle_metier = rmg.libelle_metier OR (rm.libelle_metier IS NULL AND rmg.libelle_metier IS NULL))
+  AND (rm.variable = rmg.variable OR (rm.variable IS NULL AND rmg.variable IS NULL))
+  AND (rm.model_metier = rmg.model_metier OR (rm.model_metier IS NULL AND rmg.model_metier IS NULL))
+  AND (rm.champ_metier = rmg.champ_metier OR (rm.champ_metier IS NULL AND rmg.champ_metier IS NULL))
+  AND (rm.fomat = rmg.fomat OR (rm.fomat IS NULL AND rmg.fomat IS NULL))
+  AND (rm.foreign_key_metier = rmg.foreign_key_metier OR (rm.foreign_key_metier IS NULL AND rmg.foreign_key_metier IS NULL))
+WHERE rm.id IS NULL;
+
+
+
+
+
+
+

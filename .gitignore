@@ -2,6 +2,11 @@
 /node_modules
 /public/build
 /public/hot
+/public/easymatr7_17052024.sql.gz
+/public/easymat-tressol.sql.gz
+/public/easymat-nomblot.sql.gz
+/public/easymat-demo.sql.gz
+/public/easymat-deluc.sql.gz
 /public/storage
 /storage/*.key
 /vendor
